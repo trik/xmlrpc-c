@@ -34,15 +34,13 @@ xmltok/all: gennmtab/all
 xmlrpc_expat.pc:
 	rm -f $@
 	@echo "Echoes to '$@' suppressed here ..."
-	@echo -e '$(PKGCONFIG_VAR_SET)'                                    >>$@
-	@echo	                                                           >>$@
 	@echo "Name:        xmlrpc_expat"                                  >>$@
 	@echo "Description: Xmlrpc-c XML parsing library"                  >>$@
 	@echo "Version:     $(XMLRPC_VERSION_STRING)"                      >>$@
 	@echo	                                                           >>$@
 	@echo "Requires: xmlrpc_util"                                      >>$@
-	@echo 'Libs:     -L$${libdir} -lxmlrpc_xmlparse -lxmlrpc_xmltok'   >>$@
-	@echo 'Cflags:   -I$${includedir}'                                 >>$@
+	@echo "Libs:     -L$(LIBDESTDIR) -lxmlrpc_xmlparse -lxmlrpc_xmltok" >>$@
+	@echo "Cflags:   -I$(HEADERDESTDIR)"                               >>$@
 
 .PHONY: clean
 clean: $(SUBDIRS:%=%/clean) clean-common

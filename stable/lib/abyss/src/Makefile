@@ -101,7 +101,7 @@ ifeq ($(ENABLE_ABYSS_THREADS),yes)
   $(ABYSS_SHLIB):  LIBDEP += $(THREAD_LIBS)
 endif
 ifeq ($(MUST_BUILD_ABYSS_OPENSSL),yes)
-$(ABYSS_SHLIB): LIBDEP += $(shell $(PKG_CONFIG) openssl --libs)
+$(ABYSS_SHLIB): LIBDEP += $(OPENSSL_LDADD)
 endif
 
 # Rule for this is in common.mk, courtesy of TARGET_STATIC_LIBRARIES:
@@ -116,10 +116,8 @@ libxmlrpc_abyss.a: LIBOBJECTS = $(TARGET_MODS:%=%.o)
 # Rules to compile object modules from which to build the static and shared
 # Abyss library are in common.mk, courtesy of TARGET_MODS.
 
-ifeq ($(MUST_BUILD_ABYSS_OPENSSL),yes)
-socket_openssl.o socket_openssl.osh: \
-  CFLAGS_TARGET+=$(shell $(PKG_CONFIG) openssl --cflags)
-endif
+socket_openssl.o socket_openssl.osh: CFLAGS_TARGET=$(OPENSSL_CFLAGS)
+
 
 #-----------------------------------------------------------------------------
 # RULES TO MAKE PKGCONFIG FILES

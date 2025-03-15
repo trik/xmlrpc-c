@@ -27,7 +27,6 @@
 #include "xmlrpc-c/girerr.hpp"
 using girerr::throwf;
 #include "xmlrpc-c/packetsocket.hpp"
-#include "xmlrpc-c/util_int.h"
 
 #include "xmlrpc-c/server_pstream.hpp"
 
@@ -171,10 +170,11 @@ serverPstreamConn_impl::establishPacketSocket(
     if (!opt.present.socketFd)
         throwf("You must provide a 'socketFd' constructor option.");
 
-    UNIQUE_PTR<packetSocket> packetSocketAP;
+    auto_ptr<packetSocket> packetSocketAP;
 
     try {
-        packetSocketAP.reset(new packetSocket(opt.value.socketFd));
+        auto_ptr<packetSocket> p(new packetSocket(opt.value.socketFd));
+        packetSocketAP = p;
     } catch (exception const& e) {
         throwf("Unable to create packet socket out of file descriptor %d.  %s",
                opt.value.socketFd, e.what());

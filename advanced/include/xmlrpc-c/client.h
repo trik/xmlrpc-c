@@ -124,9 +124,6 @@ struct xmlrpc_curl_xportparms {
     xmlrpc_bool  gssapi_delegation;
     const char * referer;
     unsigned int connect_timeout;
-    xmlrpc_bool  tcp_keepalive;
-    unsigned int tcp_keepidle_sec;
-    unsigned int tcp_keepintvl_sec;
 };
 
 
@@ -287,12 +284,6 @@ XMLRPC_CLIENT_EXPORTED
 void
 xmlrpc_server_info_disallow_auth_ntlm(xmlrpc_env *         const envP,
                                       xmlrpc_server_info * const sP);
-
-XMLRPC_CLIENT_EXPORTED
-void
-xmlrpc_server_info_set_unix_socket(xmlrpc_env *         const envP,
-                                   xmlrpc_server_info * const serverInfoP,
-                                   const char *         const unixSocketPath);
 
 /* These are for backward compatibility -- they can't be exported from a
    Windows DLL.  xmlrpc_server_version() is preferred.

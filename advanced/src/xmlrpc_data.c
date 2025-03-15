@@ -95,7 +95,6 @@ destroyValue(xmlrpc_value * const valueP) {
 
     case XMLRPC_TYPE_DEAD:
         XMLRPC_ASSERT(false); /* Can't happen, per entry conditions */
-        break;
 
     default:
         XMLRPC_ASSERT(false); /* There are no other possible values */

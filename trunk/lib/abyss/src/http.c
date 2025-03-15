@@ -1,6 +1,5 @@
 /* Copyright information is at the end of the file */
 
-#define _DEFAULT_SOURCE /* New name for SVID & BSD source defines */
 #define _XOPEN_SOURCE 600   /* For strdup() */
 #define _BSD_SOURCE   /* For xmlrpc_strcaseeq() */
 
@@ -136,7 +135,7 @@ RequestAuth(TSession *   const sessionP,
 
     authValue = RequestHeaderValue(sessionP, "authorization");
     if (authValue) {
-        char * const valueBuffer = malloc(strlen(authValue) + 1);
+        char * const valueBuffer = malloc(strlen(authValue));
             /* A buffer we can mangle as we parse the authorization: value */
 
         if (!authValue)
@@ -146,7 +145,7 @@ RequestAuth(TSession *   const sessionP,
             const char * authType;
             char * authHdrPtr;
 
-            strcpy(valueBuffer, authValue);  /* initial value */
+            strcpy(valueBuffer, authValue);
             authHdrPtr = &valueBuffer[0];
 
             NextToken((const char **)&authHdrPtr);
@@ -313,18 +312,14 @@ HTTPWriteBodyChunk(TSession *   const sessionP,
         sprintf(chunkHeader, "%x\r\n", len);
 
         succeeded =
-            ConnWrite(sessionP->connP, chunkHeader, strlen(chunkHeader),
-                CONN_EXPECT_MORE);
+            ConnWrite(sessionP->connP, chunkHeader, strlen(chunkHeader));
         if (succeeded) {
-            succeeded = ConnWrite(sessionP->connP, buffer, len,
-                CONN_EXPECT_MORE);
+            succeeded = ConnWrite(sessionP->connP, buffer, len);
             if (succeeded)
-                succeeded = ConnWrite(sessionP->connP, "\r\n", 2,
-                    CONN_EXPECT_NOTHING);
+                succeeded = ConnWrite(sessionP->connP, "\r\n", 2);
         }
     } else
-        succeeded = ConnWrite(sessionP->connP, buffer, len,
-            CONN_EXPECT_NOTHING);
+        succeeded = ConnWrite(sessionP->connP, buffer, len);
 
     return succeeded;
 }
@@ -339,8 +334,7 @@ HTTPWriteEndChunk(TSession * const sessionP) {
     if (sessionP->chunkedwrite && sessionP->chunkedwritemode) {
         /* May be one day trailer dumping will be added */
         sessionP->chunkedwritemode = false;
-        retval = ConnWrite(sessionP->connP, "0\r\n\r\n", 5,
-                           CONN_EXPECT_NOTHING);
+        retval = ConnWrite(sessionP->connP, "0\r\n\r\n", 5);
     } else
         retval = true;
 
@@ -368,8 +362,7 @@ HTTPWriteContinue(TSession * const sessionP) {
     char const continueStatus[] = "HTTP/1.1 100 continue\r\n\r\n";
         /* This is a status line plus an end-of-header empty line */
 
-    return ConnWrite(sessionP->connP, continueStatus, strlen(continueStatus),
-                     CONN_EXPECT_NOTHING);
+    return ConnWrite(sessionP->connP, continueStatus, strlen(continueStatus));
 }
 
 

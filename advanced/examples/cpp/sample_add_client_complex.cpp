@@ -53,8 +53,6 @@ main(int argc, char **) {
 
         xmlrpc_c::carriageParm_curl0 myCarriageParm(serverUrl);
 
-        // myCarriageParm.useUnixSocket("/tmp/mysocket");
-
         myRpcP->call(&myClient, &myCarriageParm);
 
         assert(myRpcP->isFinished());

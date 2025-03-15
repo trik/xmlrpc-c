@@ -257,9 +257,6 @@ class XMLRPC_CLIENTPP_EXPORTED carriageParm_curl0 : public xmlrpc_c::carriagePar
 
 public:
     carriageParm_curl0(std::string const serverUrl);
-
-    void
-    useUnixSocket(std::string const socketPath);
 };
 
 class XMLRPC_CLIENTPP_EXPORTED carriageParm_curl0Ptr : public xmlrpc_c::carriageParm_http0Ptr {
@@ -311,9 +308,6 @@ public:
         constrOpt & proxy_type        (xmlrpc_httpproxytype const& arg);
         constrOpt & gssapi_delegation (bool         const& arg);
         constrOpt & connect_timeout   (unsigned int const& arg);
-        constrOpt & tcp_keepalive     (bool         const& arg);
-        constrOpt & tcp_keepidle_sec  (unsigned int const& arg);
-        constrOpt & tcp_keepintvl_sec (unsigned int const& arg);
 
     private:
         struct constrOpt_impl * implP;

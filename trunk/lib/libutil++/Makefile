@@ -29,7 +29,7 @@ TARGET_MODS_PP = \
 PKGCONFIG_FILES_TO_INSTALL := xmlrpc_util++.pc
 
 OMIT_LIBXMLRPC_UTILPP_RULE = Y
-MAJ = 9
+MAJ = 8
   # Major number of shared libraries in this directory
 
 include $(SRCDIR)/common.mk
@@ -101,15 +101,13 @@ libxmlrpc_util++.a: LIBOBJECTS = $(LIBXMLRPC_UTILPP_MODS:%=%.o)
 xmlrpc_util++.pc:
 	rm -f $@
 	@echo "Echoes to '$@' suppressed here ..."
-	@echo -e '$(PKGCONFIG_VAR_SET)'                                    >>$@
-	@echo	                                                           >>$@
 	@echo "Name:        xmlrpc_util++"                                 >>$@
 	@echo "Description: Xmlrpc-c C++ utility functions library"        >>$@
 	@echo "Version:     $(XMLRPC_VERSION_STRING)"                      >>$@
 	@echo	                                                           >>$@
 	@echo "Requires: xmlrpc_util"                                      >>$@
-	@echo 'Libs:     -L$${libdir} -lxmlrpc_util++'                     >>$@
-	@echo 'Cflags:   -I$${includedir}'                                 >>$@
+	@echo "Libs:     -L$(LIBDESTDIR) -lxmlrpc_util++"                  >>$@
+	@echo "Cflags:   -I$(HEADERDESTDIR)"                               >>$@
 
 #-----------------------------------------------------------------------------
 #  MISCELLANEOUS RULES

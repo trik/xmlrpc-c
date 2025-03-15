@@ -32,7 +32,6 @@
 **
 ******************************************************************************/
 
-#define _DEFAULT_SOURCE /* New name for SVID & BSD source defines */
 #define _XOPEN_SOURCE 600   /* For strdup() */
 #define _BSD_SOURCE  /* For xmlrpc_strcaseeq */
 

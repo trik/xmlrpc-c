@@ -19,16 +19,10 @@ static pthread_mutex_t * opensslMutex;
        has created.  opensslMutex[N] is the mutex for the lock known by
        OpenSSL with ID N.
     */
-
+      
 static unsigned int maxLockCt;
+ 
 
-
-
-#pragma GCC diagnostic push
-/* Openssl library may define CRYPTO_set_locking_callback to expand to nothing,
-   in which case the following will be unreferenced.
-*/
-#pragma GCC diagnostic ignored "-Wunused-function"
 
 static void
 lock(int          const mode,
@@ -50,15 +44,7 @@ lock(int          const mode,
         pthread_mutex_unlock(mutexP);
 }
 
-#pragma GCC diagnostic pop
 
-
-
-#pragma GCC diagnostic push
-/* Openssl library may define CRYPTO_set_id_callback to expand to nothing,
-   in which case the following will be unreferenced.
-*/
-#pragma GCC diagnostic ignored "-Wunused-function"
 
 static unsigned long
 id(void) {
@@ -68,8 +54,6 @@ id(void) {
 -----------------------------------------------------------------------------*/
     return ((unsigned long)pthread_self());
 }
-
-#pragma GCC diagnostic pop
 
 
 
@@ -99,7 +83,7 @@ xmlrpc_openssl_thread_setup(const char ** const errorP) {
                         "potential OpenSSL locks", maxLockCt);
     else {
         *errorP = NULL;
-
+        
         unsigned int i;
 
         for (i = 0;  i < maxLockCt;  ++i)
@@ -136,6 +120,5 @@ xmlrpc_openssl_thread_cleanup() {
     }
     free(opensslMutex);
 }
-
 
 

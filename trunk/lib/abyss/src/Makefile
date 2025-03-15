@@ -101,7 +101,7 @@ ifeq ($(ENABLE_ABYSS_THREADS),yes)
   $(ABYSS_SHLIB):  LIBDEP += $(THREAD_LIBS)
 endif
 ifeq ($(MUST_BUILD_ABYSS_OPENSSL),yes)
-$(ABYSS_SHLIB): LIBDEP += $(shell $(PKG_CONFIG) openssl --libs)
+$(ABYSS_SHLIB): LIBDEP += $(OPENSSL_LDADD)
 endif
 
 # Rule for this is in common.mk, courtesy of TARGET_STATIC_LIBRARIES:
@@ -116,10 +116,8 @@ libxmlrpc_abyss.a: LIBOBJECTS = $(TARGET_MODS:%=%.o)
 # Rules to compile object modules from which to build the static and shared
 # Abyss library are in common.mk, courtesy of TARGET_MODS.
 
-ifeq ($(MUST_BUILD_ABYSS_OPENSSL),yes)
-socket_openssl.o socket_openssl.osh: \
-  CFLAGS_TARGET+=$(shell $(PKG_CONFIG) openssl --cflags)
-endif
+socket_openssl.o socket_openssl.osh: CFLAGS_TARGET=$(OPENSSL_CFLAGS)
+
 
 #-----------------------------------------------------------------------------
 # RULES TO MAKE PKGCONFIG FILES
@@ -133,15 +131,13 @@ SOCKLIB=$(SOCKETLIBOPT)
 xmlrpc_abyss.pc:
 	rm -f $@
 	@echo "Echoes to '$@' suppressed here ..."
-	@echo -e '$(PKGCONFIG_VAR_SET)'                                    >>$@
-	@echo	                                                           >>$@
 	@echo "Name:        xmlrpc_abyss"                                  >>$@
 	@echo "Description: Xmlrpc-c Abyss HTTP C library"                 >>$@
 	@echo "Version:     $(XMLRPC_VERSION_STRING)"                      >>$@
 	@echo	                                                           >>$@
 	@echo "Requires: xmlrpc_util"                                      >>$@
-	@echo 'Libs:     -L$${libdir} -lxmlrpc_abyss $(SOCKLIB)'           >>$@
-	@echo 'Cflags:   -I$${includedir}'                                 >>$@
+	@echo "Libs:     -L$(LIBDESTDIR) -lxmlrpc_abyss $(SOCKLIB)"        >>$@
+	@echo "Cflags:   -I$(HEADERDESTDIR)"                               >>$@
 
 # Need this dependency for those who don't use depend.mk.
 # Without it, version.h doesn't get created.

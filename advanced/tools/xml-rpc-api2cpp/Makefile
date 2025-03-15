@@ -24,7 +24,7 @@ CFLAGS_LOCAL = $(CFLAGS_NO_INLINE_WARNING)
 
 INCLUDES = -I$(BLDDIR) -I$(BLDDIR)/include -Isrcdir/include
 
-CLIENT_LDLIBS += $(CURL_LDADD) $(LIBWWW_LDADD) $(SOCKETLIBOPT)
+CLIENT_LDLIBS += $(SOCKETLIBOPT)
 
 LDLIBS = -L$(BLDDIR)/src/cpp -lxmlrpc_cpp -L$(BLDDIR)/src -lxmlrpc_server \
   $(CLIENT_LDLIBS)

@@ -2,6 +2,7 @@
                                   registry
 ===============================================================================
   Test the method registry (server) C++ facilities of XML-RPC for C/C++.
+  
 =============================================================================*/
 
 #include <string>
@@ -226,12 +227,12 @@ public:
     void
     execute(xmlrpc_c::paramList const& paramList,
             value *             const  retvalP) {
-
+        
         int const addend(paramList.getInt(0));
         int const adder(paramList.getInt(1));
-
+        
         paramList.verifyEnd(2);
-
+        
         *retvalP = value_int(addend + adder);
     }
 };
@@ -248,12 +249,12 @@ public:
     execute(xmlrpc_c::paramList const& paramList,
             const callInfo *    const,
             value *             const  retvalP) {
-
+        
         int const addend(paramList.getInt(0));
         int const adder(paramList.getInt(1));
-
+        
         paramList.verifyEnd(2);
-
+        
         *retvalP = value_int(addend + adder);
     }
 };
@@ -269,14 +270,14 @@ public:
     execute(xmlrpc_c::paramList const& paramList,
             const callInfo *    const  callInfoPtr,
             value *             const  retvalP) {
-
+        
         const callInfo_test * const callInfoP(
             dynamic_cast<const callInfo_test *>(callInfoPtr));
 
         TEST(callInfoP != NULL);
 
         paramList.verifyEnd(0);
-
+        
         *retvalP = value_string(callInfoP->data);
     }
 };
@@ -289,7 +290,7 @@ class nameMethod : public defaultMethod {
     execute(string              const& methodName,
             xmlrpc_c::paramList const& ,  // paramList
             value *             const  retvalP) {
-
+        
         *retvalP = value_string(string("no such method: ") + methodName);
     }
 };
@@ -301,9 +302,9 @@ public:
     void
     execute(xmlrpc_c::paramList const& paramList,
             value *             const  retvalP) {
-
+        
         paramList.verifyEnd(1);
-
+        
         *retvalP = paramList[0];
     }
 };
@@ -335,14 +336,14 @@ public:
     virtual void runtests(unsigned int const) {
 
         xmlrpc_c::registry myRegistry;
-
+        
         sampleAddMethod m;
 
         myRegistry.addMethod("xyz", &m);
 
-        myRegistry.addMethod("sample.add",
+        myRegistry.addMethod("sample.add", 
                              xmlrpc_c::methodPtr(new sampleAddMethod));
-
+        
         myRegistry.disableIntrospection();
         testEmptyXmlDocCall(myRegistry);
         {
@@ -375,7 +376,7 @@ public:
     virtual void runtests(unsigned int const) {
 
         xmlrpc_c::registry myRegistry;
-
+        
         myRegistry.addMethod("sample.add", methodPtr(new sampleAddMethod));
 
         {
@@ -414,13 +415,13 @@ public:
     virtual void runtests(unsigned int const) {
 
         xmlrpc_c::registry myRegistry;
-
-        myRegistry.addMethod("sample.add",
+        
+        myRegistry.addMethod("sample.add", 
                              xmlrpc_c::methodPtr(new sampleAddMethod2));
-
-        myRegistry.addMethod("test.callinfo",
+        
+        myRegistry.addMethod("test.callinfo", 
                              xmlrpc_c::methodPtr(new testCallInfoMethod));
-
+        
         {
             string response;
             myRegistry.processCall(sampleAddGoodCallXml, &response);
@@ -452,7 +453,7 @@ public:
 
         registry myRegistry;
         string response;
-
+        
         myRegistry.addMethod("sample.add", methodPtr(new sampleAddMethod));
         myRegistry.addMethod("echo", methodPtr(new echoMethod));
 
@@ -486,7 +487,7 @@ class testShutdown : public xmlrpc_c::registry::shutdown {
 public:
     void doit(string const&,
               void * const) const {
-
+        
     }
 };
 
@@ -503,7 +504,7 @@ public:
         xmlrpc_c::registry myRegistry;
 
         testShutdown shutdown;
-
+        
         myRegistry.setShutdown(&shutdown);
     }
 };
@@ -526,7 +527,7 @@ registryTestSuite::runtests(unsigned int const indentation) {
 
     {
         registryPtr myRegistryP(new registry);
-
+    
         myRegistryP->addMethod("sample.add", methodPtr(new sampleAddMethod));
     }
 
@@ -547,6 +548,3 @@ registryTestSuite::runtests(unsigned int const indentation) {
     TEST(myRegistry.maxStackSize() >= 256);
 
 }
-
-
-

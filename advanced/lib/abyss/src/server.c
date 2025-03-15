@@ -1,6 +1,5 @@
 /* Copyright information is at end of file */
 
-#define _DEFAULT_SOURCE /* New name for SVID & BSD source defines */
 #define _XOPEN_SOURCE 600  /* Make sure strdup() is in <string.h> */
 #define _BSD_SOURCE  /* Make sure setgroups()is in <grp.h> */
 
@@ -1486,7 +1485,7 @@ ServerRunOnce(TServer * const serverP) {
    Accept a connection from the channel switch and do the HTTP transaction
    that comes over it.
 
-   If no connection is currently waiting at the switch, wait for one.  But
+   If no connection is presently waiting at the switch, wait for one.  But
    return immediately if we receive a signal during the wait.
 -----------------------------------------------------------------------------*/
     struct _TServer * const srvP = serverP->srvP;
@@ -1592,7 +1591,6 @@ ServerDaemonize(TServer * const serverP) {
         break;
     case -1:
         TraceExit("Unable to become a daemon");
-        break;
     default:
         /* We are the parent */
         exit(0);

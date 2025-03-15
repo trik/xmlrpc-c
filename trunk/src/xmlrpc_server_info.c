@@ -34,7 +34,7 @@
 xmlrpc_server_info *
 xmlrpc_server_info_new(xmlrpc_env * const envP,
                        const char * const serverUrl) {
-
+    
     xmlrpc_server_info * serverInfoP;
 
     XMLRPC_ASSERT_ENV_OK(envP);
@@ -54,7 +54,6 @@ xmlrpc_server_info_new(xmlrpc_env * const envP,
             serverInfoP->allowedAuth.ntlm         = false;
             serverInfoP->userNamePw = NULL;
             serverInfoP->basicAuthHdrValue = NULL;
-            serverInfoP->unixSocketPath = NULL;
             if (envP->fault_occurred)
                 xmlrpc_strfree(serverInfoP->serverUrl);
         }
@@ -69,8 +68,8 @@ xmlrpc_server_info_new(xmlrpc_env * const envP,
 static void
 copyUserNamePw(xmlrpc_env *  const envP,
                const char *  const src,
-               const char ** const dstP) {
-
+               const char ** const dstP) { 
+    
     if (src == NULL)
         *dstP = NULL;
     else {
@@ -94,8 +93,8 @@ freeIfNonNull(const char * const arg) {
 static void
 copyBasicAuthHdrValue(xmlrpc_env *  const envP,
                       const char *  const src,
-                      const char ** const dstP) {
-
+                      const char ** const dstP) { 
+    
     if (src == NULL)
         *dstP = NULL;
     else {
@@ -112,7 +111,7 @@ static void
 copyServerInfoContent(xmlrpc_env *               const envP,
                       xmlrpc_server_info *       const dstP,
                       const xmlrpc_server_info * const srcP) {
-
+                              
     dstP->serverUrl = strdup(srcP->serverUrl);
     if (dstP->serverUrl == NULL)
         xmlrpc_faultf(envP, "Couldn't allocate memory for server URL");
@@ -132,16 +131,9 @@ copyServerInfoContent(xmlrpc_env *               const envP,
                     srcP->allowedAuth.gssnegotiate;
                 dstP->allowedAuth.ntlm         =
                     srcP->allowedAuth.ntlm;
-                if (srcP->unixSocketPath)
-                    dstP->unixSocketPath =
-                        xmlrpc_strdupsol(srcP->unixSocketPath);
-                else
-                    dstP->unixSocketPath = NULL;
-
-                if (envP->fault_occurred) {
+                
+                if (envP->fault_occurred)
                     freeIfNonNull(dstP->basicAuthHdrValue);
-                    freeIfNonNull(dstP->unixSocketPath);
-                }
             }
             if (envP->fault_occurred)
                 freeIfNonNull(dstP->userNamePw);
@@ -182,14 +174,13 @@ xmlrpc_server_info_free(xmlrpc_server_info * const serverInfoP) {
 
     XMLRPC_ASSERT_PTR_OK(serverInfoP);
     XMLRPC_ASSERT(serverInfoP->serverUrl != XMLRPC_BAD_POINTER);
-
-    freeIfNonNull(serverInfoP->unixSocketPath);
-    serverInfoP->unixSocketPath = XMLRPC_BAD_POINTER;
-
-    freeIfNonNull(serverInfoP->userNamePw);
+    
+    if (serverInfoP->userNamePw)
+        xmlrpc_strfree(serverInfoP->userNamePw);
     serverInfoP->userNamePw = XMLRPC_BAD_POINTER;
 
-    freeIfNonNull(serverInfoP->basicAuthHdrValue);
+    if (serverInfoP->basicAuthHdrValue)
+        xmlrpc_strfree(serverInfoP->basicAuthHdrValue);
     serverInfoP->basicAuthHdrValue = XMLRPC_BAD_POINTER;
 
     xmlrpc_strfree(serverInfoP->serverUrl);
@@ -200,7 +191,7 @@ xmlrpc_server_info_free(xmlrpc_server_info * const serverInfoP) {
 
 
 
-void
+void 
 xmlrpc_server_info_set_user(xmlrpc_env *         const envP,
                             xmlrpc_server_info * const serverInfoP,
                             const char *         const username,
@@ -217,7 +208,7 @@ xmlrpc_server_info_set_user(xmlrpc_env *         const envP,
     xmlrpc_asprintf(&userNamePw, "%s:%s", username, password);
 
     userNamePw64 =
-        xmlrpc_base64_encode_without_newlines(envP,
+        xmlrpc_base64_encode_without_newlines(envP, 
                                               (unsigned char*) userNamePw,
                                               strlen(userNamePw));
     if (!envP->fault_occurred) {
@@ -250,7 +241,7 @@ xmlrpc_server_info_set_user(xmlrpc_env *         const envP,
 
 
 
-void
+void 
 xmlrpc_server_info_set_basic_auth(xmlrpc_env *         const envP,
                                   xmlrpc_server_info * const serverInfoP,
                                   const char *         const username,
@@ -354,19 +345,6 @@ void
 xmlrpc_server_info_disallow_auth_ntlm(
     xmlrpc_env *         const envP ATTR_UNUSED,
     xmlrpc_server_info * const sP) {
-
+    
     sP->allowedAuth.ntlm = true;
 }
-
-
-
-void
-xmlrpc_server_info_set_unix_socket(
-    xmlrpc_env *         const envP ATTR_UNUSED,
-    xmlrpc_server_info * const sP,
-    const char *         const unixSocketPath) {
-
-    sP->unixSocketPath = xmlrpc_strdupsol(unixSocketPath);
-}
-
-

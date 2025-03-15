@@ -22,11 +22,7 @@ INCLUDES = \
 
 all: xmlrpc_transport
 
-CLIENT_LDLIBS += \
-  $(CURL_LDADD) \
-  $(LIBWWW_LDADD) \
-  $(SOCKETLIBOPT) \
-  $(THREAD_LIBS) \
+CLIENT_LDLIBS += $(SOCKETLIBOPT) $(THREAD_LIBS)
 
 UTIL_OBJS = \
   casprintf.o \

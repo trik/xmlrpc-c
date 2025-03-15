@@ -112,15 +112,13 @@ libxmlrpc_util.a: LIBOBJECTS = $(TARGET_MODS:%=%.o)
 xmlrpc_util.pc:
 	rm -f $@
 	@echo "Echoes to '$@' suppressed here ..."
-	@echo -e '$(PKGCONFIG_VAR_SET)'                                    >>$@
-	@echo	                                                           >>$@
 	@echo "Name:        xmlrpc_util"                                   >>$@
 	@echo "Description: Xmlrpc-c utility functions library"            >>$@
 	@echo "Version:     $(XMLRPC_VERSION_STRING)"                      >>$@
 	@echo	                                                           >>$@
 	@echo "Requires: "                                                 >>$@
-	@echo 'Libs:     -L$${libdir} -lxmlrpc_util'                       >>$@
-	@echo 'Cflags:   -I$${includedir}'                                 >>$@
+	@echo "Libs:     -L$(LIBDESTDIR) -lxmlrpc_util"                    >>$@
+	@echo "Cflags:   -I$(HEADERDESTDIR)"                               >>$@
 
 .PHONY: install
 install: install-common

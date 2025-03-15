@@ -39,7 +39,7 @@ TARGET_MODS_PP = \
 PKGCONFIG_FILES_TO_INSTALL := xmlrpc_abyss++.pc
 
 OMIT_ABYSSPP_LIB_RULE = Y
-MAJ = 9
+MAJ = 8
   # Major number of shared libraries in this directory
 
 include $(SRCDIR)/common.mk
@@ -120,15 +120,13 @@ $(LIBXMLRPC_ABYSSPP_MODS:%=%.osh): \
 xmlrpc_abyss++.pc:
 	rm -f $@
 	@echo "Echoes to '$@' suppressed here ..."
-	@echo -e '$(PKGCONFIG_VAR_SET)'                                    >>$@
-	@echo	                                                           >>$@
 	@echo "Name:        xmlrpc_abyss++"                                >>$@
 	@echo "Description: Xmlrpc-c Abyss HTTP C++ library"               >>$@
 	@echo "Version:     $(XMLRPC_VERSION_STRING)"                      >>$@
 	@echo	                                                           >>$@
 	@echo "Requires: xmlrpc_abyss xmlrpc_util++"                       >>$@
-	@echo 'Libs:     -L$${libdir} -lxmlrpc_abyss++'                    >>$@
-	@echo 'Cflags:   -I$${includedir}'                                 >>$@
+	@echo "Libs:     -L$(LIBDESTDIR) -lxmlrpc_abyss++"                 >>$@
+	@echo "Cflags:   -I$(HEADERDESTDIR)"                               >>$@
 
 #-----------------------------------------------------------------------------
 #  MISCELLANEOUS RULES

@@ -70,20 +70,18 @@ autoObject::Impl::decref(bool * const unreferencedP) {
  
 
 
-autoObject::autoObject() : implP(new Impl) {}
+autoObject::autoObject() : implP(auto_ptr<Impl>(new Impl)) {}
 
 
 
-autoObject::autoObject(autoObject const&) : implP(NULL) {
-    // This method is declared private, so we can't be running now:
+autoObject::autoObject(autoObject const&) {
+    // This method is declared private, so we can be running now:
     assert(false);
 }
 
 
 
-autoObject::~autoObject() {
-    delete this->implP;
-}
+autoObject::~autoObject() {}
 
 
 

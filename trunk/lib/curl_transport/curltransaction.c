@@ -17,7 +17,7 @@
 #include "version.h"
 
 #include <curl/curl.h>
-#if defined(NEED_CURL_TYPES_H)
+#ifdef NEED_CURL_TYPES_H
 #include <curl/types.h>
 #endif
 #include <curl/easy.h>
@@ -47,7 +47,7 @@
    timeout (which defaults to 5 minutes and is user-settable) is effective
    against the DNS lookup, but you had better not have multiple threads.
 
-   For backward compatibility, the default is to use SIGALRM.  That means
+   For backward compatibilty, the default is to use SIGALRM.  That means
    single-threaded programs continue to enjoy DNS lookup timeouts even when
    using new Curl.
 
@@ -61,7 +61,7 @@
    CURLOPT_CONNECTTIMEOUT to infinite.  That way, users see the same behavior
    with ARES.
 
-   It wasn't always this way.  Before Xmlrpc-c 1.41, we set CURLOPT_NOSIGNAL
+   It wasn't always this way, Before Xmlrpc-c 1.41, we set CURLOPT_NOSIGNAL
    only when the user specified the 'timeout' curl transport option, and we
    never set CURLOPT_CONNECTTIMEOUT.  This means programs that have a nice 5
    minute (Curl default) DNS lookup timeout with old Xmlrpc-c, (and happen not
@@ -105,7 +105,6 @@ struct curlTransaction {
     struct curl_slist * headerList;
         /* The HTTP headers for the transaction */
     const char * serverUrl;  /* malloc'ed - belongs to this object */
-        /* The URL for the transaction */
     xmlrpc_mem_block * postDataP;
         /* The data to send for the POST method */
     xmlrpc_mem_block * responseDataP;
@@ -411,33 +410,6 @@ curlProgress(void * const contextP,
 
 
 
-static int
-curlXferinfo(void *     const contextP,
-             curl_off_t const dltotal,
-             curl_off_t const dlnow,
-             curl_off_t const ultotal,
-             curl_off_t const ulnow) {
-/*----------------------------------------------------------------------------
-   This is a curl "transfer information" callback function, to be called
-   back from certain libcurl data transfer calls.
-
-   In old Curl, one would set up Curl to call a function of type
-   'curl_progress_callback', with arguments of type 'double'.  In later
-   versions of Curl, that facility was replaced with one in which you set
-   up Curl to call a function of type 'curl_xferinfo_callback', with
-   arguments of type 'curl_off_t', instead.  Xmlrpc-c was written for the
-   older version and its interface to its own user is patterned after
-   it (so it uses 'double' arguments).
-
-   This function is an adapter for use with newer Curl libraries.  We
-   just make the call that an older Curl library would have made itself.
------------------------------------------------------------------------------*/
-
-    return curlProgress(contextP, dltotal, dlnow, ultotal, ulnow);
-}
-
-
-
 static void
 setupAuth(xmlrpc_env *               const envP ATTR_UNUSED,
           CURL *                     const curlSessionP,
@@ -508,10 +480,6 @@ setCurlTimeout(CURL *       const curlSessionP ATTR_UNUSED,
     assert((long)timeoutSec == (int)timeoutSec);
         /* Calling requirement */
     curl_easy_setopt(curlSessionP, CURLOPT_TIMEOUT, (long)timeoutSec);
-
-    /* Diagnostic note: You can use the --max-time option on the 'curl'
-       program to exercise CURLOPT_TIMEOUT.
-    */
 #else
     /* Caller should not have called us */
     abort();
@@ -530,10 +498,6 @@ setCurlConnectTimeout(CURL *       const curlSessionP ATTR_UNUSED,
     assert((long)timeoutSec == (int)timeoutSec);
         /* Calling requirement */
     curl_easy_setopt(curlSessionP, CURLOPT_CONNECTTIMEOUT, (long)timeoutSec);
-
-    /* Diagnostic note: You can use the --connect-timeout option on the 'curl'
-       program to exercise CURLOPT_CONNECTTIMEOUT.
-    */
 #else
     /* Caller should not have called us */
     abort();
@@ -702,77 +666,21 @@ setupKeepalive(const struct curlSetup * const curlSetupP,
 
 
 static void
-setupProgressFunction(curlTransaction * const transP) {
-
-    CURL * const curlSessionP = transP->curlSessionP;
-
-    if (transP->progress) {
-#if defined(HAVE_CURL_XFERINFOFUNCTION)
-        if (false) {
-             /* Defeat unused function compiler warning */
-            curlXferinfo(NULL, 0, 0, 0, 0);
-        }
-        curl_progress_callback const progFnOpt = &curlProgress;
-        curl_easy_setopt(curlSessionP, CURLOPT_XFERINFOFUNCTION, progFnOpt);
-        curl_easy_setopt(curlSessionP, CURLOPT_XFERINFODATA, transP);
-#else
-        curl_xferinfo_callback const progFnOpt = &curlXferinfo;
-        curl_easy_setopt(curlSessionP, CURLOPT_PROGRESSFUNCTION, progFnOpt);
-        curl_easy_setopt(curlSessionP, CURLOPT_PROGRESSDATA, transP);
-#endif
-        curl_easy_setopt(curlSessionP, CURLOPT_NOPROGRESS, 0);
-    } else
-        curl_easy_setopt(curlSessionP, CURLOPT_NOPROGRESS, 1);
-}
-
-
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-static void
-setupOldOpenSslOpts(CURL *                   const curlSessionP,
-                    const struct curlSetup * const curlSetupP) {
-/*----------------------------------------------------------------------------
-   Set Curl's RANDOM_FILE and EGDSOCKET options.  These are meaningful only if
-   we're using the OpenSSL library, before version 1.1, and current Curl
-   libraries don't even work with those old libraries, so they just ignore
-   these options.  Since Curl 7.84, Curl documentation deprecates these
-   options.
------------------------------------------------------------------------------*/
-#if defined(CURL_DOES_OLD_OPENSSL)
-    if (curlSetupP->randomFile)
-        curl_easy_setopt(curlSessionP, CURLOPT_RANDOM_FILE,
-                         curlSetupP->randomFile);
-    if (curlSetupP->egdSocket)
-        curl_easy_setopt(curlSessionP, CURLOPT_EGDSOCKET,
-                         curlSetupP->egdSocket);
-#endif
-}
-#pragma GCC diagnostic pop
-
-
-
-static void
 setupCurlSession(xmlrpc_env *               const envP,
                  curlTransaction *          const transP,
                  const xmlrpc_server_info * const serverInfoP,
                  bool                       const dontAdvertise,
                  const char *               const userAgent,
-                 const char *               const unixSocketPath,
                  const struct curlSetup *   const curlSetupP) {
 /*----------------------------------------------------------------------------
    Set up the Curl session for the transaction *transP so that
    a subsequent curl_easy_perform() would perform said transaction.
 
-   *serverInfoP tells what sort of authentication to set up etc.  This is an
+   *serverInfoP tells what sort of authentication to set up.  This is an
    embarassment, as the xmlrpc_server_info type is part of the Xmlrpc-c
    interface, whereas this module is supposed to be for generic TCP via Curl.
    Some day, we need to replace this with a type (probably identical) not tied
    to Xmlrpc-c.
-
-   'unixSocketPath' is the path name of the unix socket to use for the session
-   (which determines the server, along with the URL -- this is a kludgy
-   variation on HTTP).  NULL means no unix socket is involved.
 -----------------------------------------------------------------------------*/
     CURL * const curlSessionP = transP->curlSessionP;
 
@@ -780,7 +688,7 @@ setupCurlSession(xmlrpc_env *               const envP,
 
     /* A Curl session is serial -- it processes zero or one transaction
        at a time.  We use the "private" attribute of the Curl session to
-       indicate which transaction it is currently processing.  This is
+       indicate which transaction it is presently processing.  This is
        important when the transaction finishes, because libcurl will just
        tell us that something finished on a particular session, not that
        a particular transaction finished.
@@ -800,10 +708,6 @@ setupCurlSession(xmlrpc_env *               const envP,
 
     curl_easy_setopt(curlSessionP, CURLOPT_POST, 1);
     curl_easy_setopt(curlSessionP, CURLOPT_URL, transP->serverUrl);
-    if (unixSocketPath) {
-        curl_easy_setopt(curlSessionP,
-                         CURLOPT_UNIX_SOCKET_PATH, unixSocketPath);
-    }
 
     XMLRPC_MEMBLOCK_APPEND(char, envP, transP->postDataP, "\0", 1);
     if (!envP->fault_occurred) {
@@ -814,8 +718,13 @@ setupCurlSession(xmlrpc_env *               const envP,
             /* CURLOPT_FILE is the older name for CURLOPT_WRITEDATA */
         curl_easy_setopt(curlSessionP, CURLOPT_HEADER, 0);
         curl_easy_setopt(curlSessionP, CURLOPT_ERRORBUFFER, transP->curlError);
-
-        setupProgressFunction(transP);
+        if (transP->progress) {
+            curl_easy_setopt(curlSessionP, CURLOPT_NOPROGRESS, 0);
+            curl_easy_setopt(curlSessionP, CURLOPT_PROGRESSFUNCTION,
+                             curlProgress);
+            curl_easy_setopt(curlSessionP, CURLOPT_PROGRESSDATA, transP);
+        } else
+            curl_easy_setopt(curlSessionP, CURLOPT_NOPROGRESS, 1);
 
         curl_easy_setopt(curlSessionP, CURLOPT_SSL_VERIFYPEER,
                          curlSetupP->sslVerifyPeer);
@@ -861,8 +770,12 @@ setupCurlSession(xmlrpc_env *               const envP,
         if (curlSetupP->caPath)
             curl_easy_setopt(curlSessionP, CURLOPT_CAPATH,
                              curlSetupP->caPath);
-        setupOldOpenSslOpts(curlSessionP, curlSetupP);
-
+        if (curlSetupP->randomFile)
+            curl_easy_setopt(curlSessionP, CURLOPT_RANDOM_FILE,
+                             curlSetupP->randomFile);
+        if (curlSetupP->egdSocket)
+            curl_easy_setopt(curlSessionP, CURLOPT_EGDSOCKET,
+                             curlSetupP->egdSocket);
         if (curlSetupP->sslCipherList)
             curl_easy_setopt(curlSessionP, CURLOPT_SSL_CIPHER_LIST,
                              curlSetupP->sslCipherList);
@@ -904,6 +817,7 @@ setupCurlSession(xmlrpc_env *               const envP,
                    in which anything larger than LONG_MAX/1000 results in an
                    instantaneous timeout.
                 */
+
         if (curlSetupP->gssapiDelegation) {
             bool gotIt;
             requestGssapiDelegation(curlSessionP, &gotIt);
@@ -976,20 +890,22 @@ curlTransaction_create(xmlrpc_env *               const envP,
         */
         curlTransactionP->curlError[0] = '\0';
 
-        curlTransactionP->serverUrl = xmlrpc_strdupsol(serverP->serverUrl);
+        curlTransactionP->serverUrl = strdup(serverP->serverUrl);
+        if (curlTransactionP->serverUrl == NULL)
+            xmlrpc_faultf(envP, "Out of memory to store server URL.");
+        else {
+            curlTransactionP->postDataP     = callXmlP;
+            curlTransactionP->responseDataP = responseXmlP;
 
-        curlTransactionP->postDataP     = callXmlP;
-        curlTransactionP->responseDataP = responseXmlP;
+            setupCurlSession(envP, curlTransactionP,
+                             serverP, dontAdvertise, userAgent,
+                             curlSetupStuffP);
 
-        setupCurlSession(envP, curlTransactionP,
-                         serverP, dontAdvertise, userAgent,
-                         serverP->unixSocketPath,
-                         curlSetupStuffP);
-
-        if (envP->fault_occurred) {
-            xmlrpc_strfree(curlTransactionP->serverUrl);
-            free(curlTransactionP);
+            if (envP->fault_occurred)
+                xmlrpc_strfree(curlTransactionP->serverUrl);
         }
+        if (envP->fault_occurred)
+            free(curlTransactionP);
     }
     *curlTransactionPP = curlTransactionP;
 }

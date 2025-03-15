@@ -78,7 +78,7 @@ digitStringMillionths(const char * const string,
 
 #if HAVE_REGEX
 
-static void
+static void 
 subParseDtRegex_standard(regmatch_t *      const matches,
                          const char *      const datetimeString,
                          xmlrpc_datetime * const dtP) {
@@ -89,7 +89,7 @@ subParseDtRegex_standard(regmatch_t *      const matches,
     dtP->h = digitStringValue(datetimeString, matches[4]);
     dtP->m = digitStringValue(datetimeString, matches[5]);
     dtP->s = digitStringValue(datetimeString, matches[6]);
-
+    
     if (matches[7].rm_so == -1)
         dtP->u = 0;
     else
@@ -98,7 +98,7 @@ subParseDtRegex_standard(regmatch_t *      const matches,
 
 
 
-static void
+static void 
 subParseDtRegex_standardtzd(regmatch_t *      const matches,
                             const char *      const datetimeString,
                             xmlrpc_datetime * const dtP) {
@@ -124,7 +124,7 @@ typedef  void (*regparsefunc_t)(regmatch_t *      const matches,
 
 struct regexParser {
     const char * const regex;
-    regparsefunc_t func;
+    regparsefunc_t func; 
 };
 
 static const struct regexParser iso8601Regex[]
@@ -142,24 +142,22 @@ static const struct regexParser iso8601Regex[]
                   YYYYMMDD[T]HHMMSS
                   YYYY-MM-DD[T]HH:MM:SS
                   YYYY-MM-DD[T]HH:MM:SS.ssss
-                  YYYY-MM-DD[T]HH:MM:SS.ssssZ
                */
 
                "^([0-9]{4})\\-?([0-9]{2})\\-?([0-9]{2})T"
-               "([0-9]{2}):?([0-9]{2}):?([0-9]{2})\\.?([0-9]+)?Z?$",
+               "([0-9]{2}):?([0-9]{2}):?([0-9]{2})\\.?([0-9]+)?$",
                subParseDtRegex_standard
            },
-
-           {
+           
+           { 
                /* Examples:
                   YYYYMMDD[T]HHMMSS[Z]
                   YYYYMMDD[T]HHMMSS[+-]hh
                   YYYYMMDD[T]HHMMSS[+-]hhmm
-                  YYYYMMDD[T]
                */
 
                "^([0-9]{4})\\-?([0-9]{2})\\-?([0-9]{2})T"
-               "([0-9]{2}):?([0-9]{2}):?([0-9]{2})[Z\\+\\-]([0-9]{2,4})?Z?$",
+               "([0-9]{2}):?([0-9]{2}):?([0-9]{2})[Z\\+\\-]([0-9]{2,4})?$",
                subParseDtRegex_standardtzd
            },
            { NULL, NULL }
@@ -193,13 +191,13 @@ parseDtRegex(xmlrpc_env *      const envP,
         assert(status == 0); if (status){};  /* quiet compiler warning */
         {
             int status;
-
-            status = regexec(&re, datetimeString, ARRAY_SIZE(matches),
+    
+            status = regexec(&re, datetimeString, ARRAY_SIZE(matches), 
                              matches, 0);
-
+    
             if (status == 0) {
                 assert(matches[0].rm_so != -1);  /* Match of whole regex */
-
+                
                 parserP = thisParserP;
             }
         }
@@ -223,90 +221,70 @@ parseDtRegex(xmlrpc_env *      const envP,
 
 static __inline__ void
 parseDtNoRegex(xmlrpc_env *      const envP,
-               const char *      const datetimeStringArg,
+               const char *      const datetimeString,
                xmlrpc_datetime * const dtP) {
 
+    unsigned int const dtStrlen = strlen(datetimeString);
 
-    size_t const dtStrArgLen = strlen(datetimeStringArg);
+    char year[4+1];
+    char month[2+1];
+    char day[2+1];
+    char hour[2+1];
+    char minute[2+1];
+    char second[2+1];
 
-    char * datetimeString;
-        /* Same as argument, but with optional Z suffix removed */
-
-    datetimeString = strdup(datetimeStringArg);
-    if (!datetimeString)
-        xmlrpc_faultf(envP, "Failed to allocate %lu bytes for datetime buffer",
-                      dtStrArgLen+1);
+    if (dtStrlen < 17 || dtStrlen == 18 || dtStrlen > 24)
+        xmlrpc_faultf(envP, "could not parse date, size incompatible: '%d'",
+                      dtStrlen);
     else {
-        unsigned int dtStrlen;  /* length of 'datetimeString' */
+        year[0]   = datetimeString[ 0];
+        year[1]   = datetimeString[ 1];
+        year[2]   = datetimeString[ 2];
+        year[3]   = datetimeString[ 3];
+        year[4]   = '\0';
 
-        char year[4+1];
-        char month[2+1];
-        char day[2+1];
-        char hour[2+1];
-        char minute[2+1];
-        char second[2+1];
+        month[0]  = datetimeString[ 4];
+        month[1]  = datetimeString[ 5];
+        month[2]  = '\0';
 
-        if (dtStrArgLen > 0 && datetimeStringArg[dtStrArgLen-1] == 'Z') {
-            /* Truncate the Z */
-            datetimeString[dtStrArgLen-1] = '\0';
-        }
+        day[0]    = datetimeString[ 6];
+        day[1]    = datetimeString[ 7];
+        day[2]    = '\0';
 
-        dtStrlen = strlen(datetimeString);
+        assert(datetimeString[ 8] == 'T');
 
-        if (dtStrlen < 17 || dtStrlen == 18 || dtStrlen > 24)
-            xmlrpc_faultf(envP, "could not parse date, size incompatible: '%d'",
-                          dtStrlen);
-        else {
-            year[0]   = datetimeString[ 0];
-            year[1]   = datetimeString[ 1];
-            year[2]   = datetimeString[ 2];
-            year[3]   = datetimeString[ 3];
-            year[4]   = '\0';
+        hour[0]   = datetimeString[ 9];
+        hour[1]   = datetimeString[10];
+        hour[2]   = '\0';
 
-            month[0]  = datetimeString[ 4];
-            month[1]  = datetimeString[ 5];
-            month[2]  = '\0';
+        assert(datetimeString[11] == ':');
 
-            day[0]    = datetimeString[ 6];
-            day[1]    = datetimeString[ 7];
-            day[2]    = '\0';
+        minute[0] = datetimeString[12];
+        minute[1] = datetimeString[13];
+        minute[2] = '\0';
 
-            assert(datetimeString[ 8] == 'T');
+        assert(datetimeString[14] == ':');
 
-            hour[0]   = datetimeString[ 9];
-            hour[1]   = datetimeString[10];
-            hour[2]   = '\0';
+        second[0] = datetimeString[15];
+        second[1] = datetimeString[16];
+        second[2] = '\0';
 
-            assert(datetimeString[11] == ':');
+        if (dtStrlen > 17) {
+            unsigned int const pad = 24 - dtStrlen;
+            unsigned int i;
 
-            minute[0] = datetimeString[12];
-            minute[1] = datetimeString[13];
-            minute[2] = '\0';
+            dtP->u = atoi(&datetimeString[18]);
+            for (i = 0; i < pad; ++i)
+                dtP->u *= 10;
+        } else
+            dtP->u = 0;
 
-            assert(datetimeString[14] == ':');
-
-            second[0] = datetimeString[15];
-            second[1] = datetimeString[16];
-            second[2] = '\0';
-
-            if (dtStrlen > 17) {
-                unsigned int const pad = 24 - dtStrlen;
-                unsigned int i;
-
-                dtP->u = atoi(&datetimeString[18]);
-                for (i = 0; i < pad; ++i)
-                    dtP->u *= 10;
-            } else
-                dtP->u = 0;
-
-            dtP->Y = atoi(year);
-            dtP->M = atoi(month);
-            dtP->D = atoi(day);
-            dtP->h = atoi(hour);
-            dtP->m = atoi(minute);
-            dtP->s = atoi(second);
-        }
-        free(datetimeString);
+        dtP->Y = atoi(year);
+        dtP->M = atoi(month);
+        dtP->D = atoi(day);
+        dtP->h = atoi(hour);
+        dtP->m = atoi(minute);
+        dtP->s = atoi(second);
     }
 }
 
@@ -360,45 +338,32 @@ validateFirst17(xmlrpc_env * const envP,
 
 
 static void
-validateSuffix(xmlrpc_env * const envP,
-               const char * const dt) {
+validateFractionalSeconds(xmlrpc_env * const envP,
+                          const char * const dt) {
 /*----------------------------------------------------------------------------
    Validate the fractional seconds part of the XML-RPC datetime string
-   'dt', if any, and Z suffix, if any.
+   'dt', if any.  That's the decimal point and everything following
+   it.
 -----------------------------------------------------------------------------*/
     if (strlen(dt) > 17) {
-        if (dt[17] == '.') {
+        if (dt[17] != '.') {
+            xmlrpc_env_set_fault_formatted(
+                envP, XMLRPC_PARSE_ERROR,
+                "'%c' where only a period is valid", dt[17]);
+        } else {
             if (dt[18] == '\0')
                 xmlrpc_env_set_fault_formatted(
                     envP, XMLRPC_PARSE_ERROR, "Nothing after decimal point");
             else {
                 unsigned int i;
-                for (i = 18;
-                     dt[i] != '\0' && dt[i] != 'Z' && !envP->fault_occurred;
-                     ++i) {
+                for (i = 18; dt[i] != '\0' && !envP->fault_occurred; ++i) {
                     if (!isdigit(dt[i]))
                         xmlrpc_env_set_fault_formatted(
                             envP, XMLRPC_PARSE_ERROR,
                             "Non-digit in fractional seconds: '%c'", dt[i]);
                 }
-                if (dt[i] == 'Z' && dt[i+1] != '\0')
-                    xmlrpc_env_set_fault_formatted(
-                        envP, XMLRPC_PARSE_ERROR,
-                        "Junk following Z suffix "
-                        "after fractional seconds: '%s'",
-                        &dt[i+1]);
             }
-        } else if (dt[17] == 'Z') {
-            /* Whole seconds with Z suffix */
-            if (dt[18] != '\0')
-                xmlrpc_env_set_fault_formatted(
-                    envP, XMLRPC_PARSE_ERROR,
-                    "Junk following Z suffix: '%s'", &dt[18]);
-        } else
-            xmlrpc_env_set_fault_formatted(
-                envP, XMLRPC_PARSE_ERROR,
-                "'%c' where only a period is valid", dt[17]);
-        } else {
+        }
     }
 }
 
@@ -407,20 +372,17 @@ validateSuffix(xmlrpc_env * const envP,
 static __inline__ void
 validateFormatNoRegex(xmlrpc_env * const envP,
                       const char * const dt) {
-/*----------------------------------------------------------------------------
-   Validate the XML-RPC datetime string 'dt' without using regular
-   expressions.
------------------------------------------------------------------------------*/
+
     if (strlen(dt) < 17)
         xmlrpc_env_set_fault_formatted(
-            envP, XMLRPC_PARSE_ERROR,
+            envP, XMLRPC_PARSE_ERROR, 
             "Invalid length of %u of datetime.  "
             "Must be at least 17 characters",
             (unsigned)strlen(dt));
     else {
         validateFirst17(envP, dt);
 
-        validateSuffix(envP, dt);
+        validateFractionalSeconds(envP, dt);
     }
 }
 
@@ -470,7 +432,7 @@ xmlrpc_parseDatetime(xmlrpc_env *    const envP,
                      const char *    const datetimeString,
                      xmlrpc_value ** const valuePP) {
 /*----------------------------------------------------------------------------
-   Parse the content of a <datetime.iso8601> XML-RPC XML element, e.g.
+   Parse the content of a <datetime.iso8601> XML-RPC XML element, e.g. 
    "20000301T00:00:00".
 
    'str' is that content.
@@ -503,6 +465,3 @@ xmlrpc_parseDatetime(xmlrpc_env *    const envP,
             *valuePP = xmlrpc_datetime_new(envP, dt);
     }
 }
-
-
-

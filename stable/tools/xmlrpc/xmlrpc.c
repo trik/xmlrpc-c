@@ -47,11 +47,9 @@ struct cmdlineInfo {
     const char *  methodName;
     unsigned int  paramCount;
     const char ** params;
-        /* Array of parameters, in order.  Has 'paramCount' entries.
-           Each of these is as it appears on the command line, e.g. "i/4"
-        */
+        /* Array of parameters, in order.  Has 'paramCount' entries. */
     const char *  transport;
-        /* Name of XML transport he wants to use.  NULL if he has no
+        /* Name of XML transport he wants to use.  NULL if he has no 
            preference.
         */
     const char *  curlinterface;
@@ -61,13 +59,11 @@ struct cmdlineInfo {
     xmlrpc_bool   curlnoverifypeer;
     xmlrpc_bool   curlnoverifyhost;
     const char *  curluseragent;
-    bool          xmlsizelimitSpec;
-    unsigned int  xmlsizelimit;
 };
 
 
 
-static void
+static void 
 die_if_fault_occurred (xmlrpc_env * const envP) {
     if (envP->fault_occurred) {
         fprintf(stderr, "Failed.  %s\n", envP->fault_string);
@@ -91,7 +87,7 @@ setError(xmlrpc_env * const envP, const char format[], ...) {
 
     strfree(faultString);
 }
-
+      
 
 
 static void
@@ -104,7 +100,7 @@ processArguments(xmlrpc_env *         const envP,
                  "method name.");
     else {
         unsigned int i;
-
+        
         cmdlineP->url        = cmd_getArgument(cp, 0);
         cmdlineP->methodName = cmd_getArgument(cp, 1);
         cmdlineP->paramCount = cmd_argumentCount(cp) - 2;
@@ -120,13 +116,13 @@ static void
 chooseTransport(xmlrpc_env *  const envP ATTR_UNUSED,
                 cmdlineParser const cp,
                 const char ** const transportPP) {
-
+    
     const char * transportOpt = cmd_getOptionValueString(cp, "transport");
 
     if (transportOpt) {
         *transportPP = transportOpt;
     } else {
-        if (cmd_optionIsPresent(cp, "curlinterface") ||
+        if (cmd_optionIsPresent(cp, "curlinterface") || 
             cmd_optionIsPresent(cp, "curlnoverifypeer") ||
             cmd_optionIsPresent(cp, "curlnoverifyhost") ||
             cmd_optionIsPresent(cp, "curluseragent"))
@@ -156,7 +152,6 @@ parseCommandLine(xmlrpc_env *         const envP,
     cmd_defineOption(cp, "curlnoverifypeer", OPTTYPE_STRING);
     cmd_defineOption(cp, "curlnoverifyhost", OPTTYPE_STRING);
     cmd_defineOption(cp, "curluseragent",    OPTTYPE_STRING);
-    cmd_defineOption(cp, "xmlsizelimit",     OPTTYPE_BINUINT);
 
     cmd_processOptions(cp, argc, argv, &error);
 
@@ -164,13 +159,6 @@ parseCommandLine(xmlrpc_env *         const envP,
         setError(envP, "Command syntax error.  %s", error);
         strfree(error);
     } else {
-        if (cmd_optionIsPresent(cp, "xmlsizelimit")) {
-            cmdlineP->xmlsizelimitSpec = true;
-            cmdlineP->xmlsizelimit =
-                cmd_getOptionValueUint(cp, "xmlsizelimit");
-        } else
-            cmdlineP->xmlsizelimitSpec = false;
-
         cmdlineP->username  = cmd_getOptionValueString(cp, "username");
         cmdlineP->password  = cmd_getOptionValueString(cp, "password");
 
@@ -180,7 +168,7 @@ parseCommandLine(xmlrpc_env *         const envP,
         else {
             chooseTransport(envP, cp, &cmdlineP->transport);
 
-            cmdlineP->curlinterface =
+            cmdlineP->curlinterface = 
                 cmd_getOptionValueString(cp, "curlinterface");
             cmdlineP->curlnoverifypeer =
                 cmd_optionIsPresent(cp, "curlnoverifypeer");
@@ -189,7 +177,7 @@ parseCommandLine(xmlrpc_env *         const envP,
             cmdlineP->curluseragent =
                 cmd_getOptionValueString(cp, "curluseragent");
 
-            if ((!cmdlineP->transport ||
+            if ((!cmdlineP->transport || 
                  !streq(cmdlineP->transport, "curl"))
                 &&
                 (cmdlineP->curlinterface ||
@@ -211,7 +199,7 @@ static void
 freeCmdline(struct cmdlineInfo const cmdline) {
 
     unsigned int i;
-
+    
     strfree(cmdline.url);
     strfree(cmdline.methodName);
     if (cmdline.transport)
@@ -248,13 +236,13 @@ static const char *
 tokenTypeName(enum TokenType const type) {
 
     switch (type) {
-    case COMMA:      return "comma";
-    case COLON:      return "colon";
-    case LEFTPAREN:  return "left parenthesis";
-    case RIGHTPAREN: return "right parenthesis";
-    case LEFTBRACE:  return "left brace";
-    case RIGHTBRACE: return "right brace";
-    case END:        return "end of string";
+    case COMMA:      return "comma";             
+    case COLON:      return "colon";             
+    case LEFTPAREN:  return "left parenthesis";  
+    case RIGHTPAREN: return "right parenthesis"; 
+    case LEFTBRACE:  return "left brace";        
+    case RIGHTBRACE: return "right brace";       
+    case END:        return "end of string";     
     }
     return NULL; /* defeat bogus compiler warning */
 }
@@ -315,12 +303,12 @@ getCdata(xmlrpc_env *  const envP,
 
         for (textCursor = 0, end = false; !end; ) {
             switch (*cursor) {
-            case ',':
-            case ':':
-            case '(':
-            case ')':
-            case '{':
-            case '}':
+            case ',': 
+            case ':': 
+            case '(': 
+            case ')': 
+            case '{': 
+            case '}': 
             case '\0':
                 end = true;
                 break;
@@ -339,7 +327,7 @@ getCdata(xmlrpc_env *  const envP,
         text[textCursor++] = '\0';
 
         assert(textCursor <= cdataSizeBound);
-
+    
         *cdataP  = text;
         *cursorP = cursor;
     }
@@ -403,7 +391,7 @@ buildBytestring(xmlrpc_env *    const envP,
                       (unsigned)strlen(valueString));
     else {
         size_t const byteStringSize = strlen(valueString)/2;
-
+        
         unsigned char * byteString;
 
         MALLOCARRAY(byteString, byteStringSize);
@@ -461,7 +449,7 @@ buildBool(xmlrpc_env *    const envP,
         setError(envP, "Boolean argument has unrecognized value '%s'.  "
                  "recognized values are 't', 'f', 'true', and 'false'.",
                  valueString);
-}
+} 
 
 
 
@@ -479,7 +467,7 @@ buildDouble(xmlrpc_env *    const envP,
         value = strtod(valueString, &tailptr);
 
         if (*tailptr != '\0')
-            setError(envP,
+            setError(envP, 
                      "\"Double\" argument has non-decimal crap in it: '%s'",
                      tailptr);
         else
@@ -711,11 +699,11 @@ buildValue(xmlrpc_env *    const envP,
             buildString(envP, &cdata[2], valuePP);
         else if (xmlrpc_strneq(cdata, "h/", 2))
             buildBytestring(envP, &cdata[2], valuePP);
-        else if (xmlrpc_strneq(cdata, "i/", 2))
+        else if (xmlrpc_strneq(cdata, "i/", 2)) 
             buildInt(envP, &cdata[2], valuePP);
-        else if (xmlrpc_strneq(cdata, "I/", 2))
+        else if (xmlrpc_strneq(cdata, "I/", 2)) 
             buildI8(envP, &cdata[2], valuePP);
-        else if (xmlrpc_strneq(cdata, "d/", 2))
+        else if (xmlrpc_strneq(cdata, "d/", 2)) 
             buildDouble(envP, &cdata[2], valuePP);
         else if (xmlrpc_strneq(cdata, "b/", 2))
             buildBool(envP, &cdata[2], valuePP);
@@ -735,7 +723,7 @@ buildValue(xmlrpc_env *    const envP,
                 buildStruct(envP, cursorP, valuePP);
         } else {
             /* It's not in normal type/value format, so we take it to be
-               the shortcut string notation
+               the shortcut string notation 
             */
             buildString(envP, cdata, valuePP);
         }
@@ -769,7 +757,7 @@ computeParamArray(xmlrpc_env *    const envP,
                   unsigned int    const paramCount,
                   const char **   const params,
                   xmlrpc_value ** const paramArrayPP) {
-
+    
     unsigned int i;
 
     xmlrpc_value * paramArrayP;
@@ -816,12 +804,12 @@ callWithClient(xmlrpc_env *               const envP,
                const char *               const methodName,
                xmlrpc_value *             const paramArrayP,
                xmlrpc_value **            const resultPP) {
-
+               
     xmlrpc_env env;
     xmlrpc_env_init(&env);
     *resultPP = xmlrpc_client_call_server_params(
         &env, serverInfoP, methodName, paramArrayP);
-
+    
     if (env.fault_occurred)
         xmlrpc_faultf(envP, "Call failed.  %s.  (XML-RPC fault code %d)",
                       env.fault_string, env.fault_code);
@@ -841,7 +829,7 @@ doCall(xmlrpc_env *               const envP,
        const char *               const methodName,
        xmlrpc_value *             const paramArrayP,
        xmlrpc_value **            const resultPP) {
-
+    
     struct xmlrpc_clientparms clientparms;
 
     XMLRPC_ASSERT(xmlrpc_value_type(paramArrayP) == XMLRPC_TYPE_ARRAY);
@@ -856,14 +844,14 @@ doCall(xmlrpc_env *               const envP,
         curlXportParmsP->no_ssl_verifypeer = curlnoverifypeer;
         curlXportParmsP->no_ssl_verifyhost = curlnoverifyhost;
         curlXportParmsP->user_agent        = curluseragent;
-
+        
         clientparms.transportparmsP    = curlXportParmsP;
         clientparms.transportparm_size = XMLRPC_CXPSIZE(user_agent);
     } else {
         clientparms.transportparmsP = NULL;
         clientparms.transportparm_size = 0;
     }
-    xmlrpc_client_init2(envP, XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION,
+    xmlrpc_client_init2(envP, XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION, 
                         &clientparms, XMLRPC_CPSIZE(transportparm_size));
     if (!envP->fault_occurred) {
         callWithClient(envP, serverInfoP, methodName, paramArrayP, resultPP);
@@ -897,8 +885,8 @@ createServerInfo(xmlrpc_env *          const envP,
 
 
 
-int
-main(int           const argc,
+int 
+main(int           const argc, 
      const char ** const argv) {
 
     struct cmdlineInfo cmdline;
@@ -913,9 +901,6 @@ main(int           const argc,
     parseCommandLine(&env, argc, argv, &cmdline);
     die_if_fault_occurred(&env);
 
-    if (cmdline.xmlsizelimitSpec)
-        xmlrpc_limit_set(XMLRPC_XML_SIZE_LIMIT_ID, cmdline.xmlsizelimit);
-
     computeUrl(cmdline.url, &url);
 
     computeParamArray(&env, cmdline.paramCount, cmdline.params, &paramArrayP);
@@ -929,12 +914,12 @@ main(int           const argc,
            cmdline.curlnoverifypeer, cmdline.curlnoverifyhost,
            cmdline.curluseragent,
            serverInfoP,
-           cmdline.methodName, paramArrayP,
+           cmdline.methodName, paramArrayP, 
            &resultP);
     die_if_fault_occurred(&env);
 
     dumpResult(resultP);
-
+    
     strfree(url);
 
     xmlrpc_DECREF(resultP);
@@ -942,6 +927,6 @@ main(int           const argc,
     freeCmdline(cmdline);
 
     xmlrpc_env_clean(&env);
-
+    
     return 0;
 }

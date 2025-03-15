@@ -158,7 +158,7 @@ carriageParm_http0::~carriageParm_http0() {
 void
 carriageParm_http0::instantiate(string const serverUrl) {
 
-    if (this->c_serverInfoP)
+    if (c_serverInfoP)
         throw(error("object already instantiated"));
 
     env_wrap env;
